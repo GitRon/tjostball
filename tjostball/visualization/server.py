@@ -72,8 +72,13 @@ model_params = {
 # Create an initial model instance
 model = TjostballModel()
 
-# Create space visualization component with agent portrayal
-space_component = make_space_component(agent_portrayal, draw_ball)
+# Create space visualization component with agent portrayal using Altair backend
+# Altair works better with ContinuousSpace (matplotlib expects GridSpace with properties)
+space_component = make_space_component(
+    agent_portrayal,
+    draw_additional=draw_ball,
+    backend="altair"
+)
 
 # Create the visualization page
 page = SolaraViz(

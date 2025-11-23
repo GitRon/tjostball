@@ -1,38 +1,7 @@
 """Visualization server for Tjostball simulation using Mesa 3.x Solara interface."""
 
-from mesa.visualization import SolaraViz, Slider, make_plot_component
+from mesa.visualization import SolaraViz, Slider
 from tjostball.models.game import TjostballModel
-from tjostball.agents.player import TjostballPlayer
-
-
-def agent_portrayal(agent):
-    """
-    Define how agents are portrayed in the visualization.
-
-    Args:
-        agent: The agent to portray
-
-    Returns:
-        Dictionary describing the visual representation
-    """
-    if not isinstance(agent, TjostballPlayer):
-        return {}
-
-    # Color by team
-    if agent.team == 0:
-        color = "blue"
-    else:
-        color = "red"
-
-    # Size based on stamina
-    stamina_ratio = agent.stamina / agent.max_stamina
-    size = 15 + (stamina_ratio * 15)  # Size between 15-30
-
-    return {
-        "color": color,
-        "size": size,
-        "marker": "o",  # circle
-    }
 
 
 # Model parameters that can be adjusted in the UI
@@ -52,9 +21,9 @@ model_params = {
 model = TjostballModel()
 
 # Create the visualization page - this is the module-level variable that Solara looks for
+# Mesa 3.x will automatically render the space with default settings
 page = SolaraViz(
     model,
     model_params=model_params,
-    agent_portrayal=agent_portrayal,
     name="Tjostball Simulation",
 )

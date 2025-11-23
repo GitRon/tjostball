@@ -28,15 +28,17 @@ def agent_portrayal(agent):
 
         # Size based on stamina (larger = more stamina)
         stamina_ratio = agent.stamina / agent.max_stamina
-        size = 50 + (stamina_ratio * 100)  # Size between 50-150
+        base_size = 50 + (stamina_ratio * 100)  # Size between 50-150
 
         # Highlight player with ball possession
         if agent.model.ball_holder == agent:
-            # Ball holder: thick white border to stand out
-            edgecolor = "white"
-            linewidth = 6
+            # Ball holder: larger size and bright lime border to stand out
+            size = base_size * 1.3  # 30% larger
+            edgecolor = "lime"
+            linewidth = 4
         else:
             # Regular players: subtle team-colored border
+            size = base_size
             edgecolor = color
             linewidth = 1
 

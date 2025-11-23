@@ -28,10 +28,18 @@ def agent_portrayal(agent):
         stamina_ratio = agent.stamina / agent.max_stamina
         size = 50 + (stamina_ratio * 100)  # Size between 50-150
 
-        return {
+        # Highlight player with ball possession
+        portrayal = {
             "color": color,
             "size": size,
         }
+
+        # Add yellow border if player has the ball
+        if agent.model.ball_holder == agent:
+            portrayal["edgecolors"] = "yellow"
+            portrayal["linewidths"] = 3
+
+        return portrayal
 
     # Unknown agent type
     return {}

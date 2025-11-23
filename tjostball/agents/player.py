@@ -96,6 +96,32 @@ class TjostballPlayer(Agent):
 
         return {"type": "idle"}
 
+    def would_collide(self, new_pos, min_distance=3.0):
+        """
+        Check if moving to new_pos would cause a collision with other players.
+
+        Args:
+            new_pos: Tuple (x, y) of the proposed new position
+            min_distance: Minimum allowed distance between players
+
+        Returns:
+            True if collision would occur, False otherwise
+        """
+        new_x, new_y = new_pos
+
+        # Check all other players
+        for agent in self.model.agents:
+            if isinstance(agent, TjostballPlayer) and agent != self:
+                other_x, other_y = agent.pos
+                dx = new_x - other_x
+                dy = new_y - other_y
+                distance = (dx**2 + dy**2)**0.5
+
+                if distance < min_distance:
+                    return True
+
+        return False
+
     def execute_action(self, action):
         """
         Execute the decided action.
@@ -119,7 +145,10 @@ class TjostballPlayer(Agent):
                 new_x = max(0, min(self.model.field_width, new_x))
                 new_y = max(0, min(self.model.field_height, new_y))
 
-                self.model.grid.move_agent(self, (new_x, new_y))
+                # Only move if it won't cause a collision
+                if not self.would_collide((new_x, new_y)):
+                    self.model.grid.move_agent(self, (new_x, new_y))
+                # Otherwise stay in current position
 
     def step(self):
         """

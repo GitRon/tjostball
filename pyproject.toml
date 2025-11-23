@@ -1,0 +1,14 @@
+[project]
+name = "tjostball"
+version = "0.1.0"
+description = "Agent-based game simulation using Mesa framework"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "mesa>=3.0.0",
+    "numpy>=1.24.0",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"

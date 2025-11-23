@@ -3,19 +3,19 @@ Agent-based game simulation using Mesa framework
 
 ## Quick Start
 
-Install dependencies:
+Install dependencies using `uv`:
 ```bash
-pip install -r requirements.txt
+uv sync
 ```
 
 Run headless simulation (no visualization):
 ```bash
-python3 run_headless.py
+uv run python run_headless.py
 ```
 
 Run with web visualization:
 ```bash
-python3 run_simulation.py
+uv run python run_simulation.py
 # Open browser to http://localhost:8521
 ```
 

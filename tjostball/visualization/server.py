@@ -17,6 +17,8 @@ def agent_portrayal(agent):
         return {
             "color": "yellow",
             "size": 200,
+            "edgecolors": "orange",
+            "linewidths": 2,
         }
 
     # Players
@@ -29,17 +31,21 @@ def agent_portrayal(agent):
         size = 50 + (stamina_ratio * 100)  # Size between 50-150
 
         # Highlight player with ball possession
-        portrayal = {
+        if agent.model.ball_holder == agent:
+            # Yellow border for ball holder
+            edgecolor = "yellow"
+            linewidth = 4
+        else:
+            # Subtle border for other players
+            edgecolor = color
+            linewidth = 1
+
+        return {
             "color": color,
             "size": size,
+            "edgecolors": edgecolor,
+            "linewidths": linewidth,
         }
-
-        # Add yellow border if player has the ball
-        if agent.model.ball_holder == agent:
-            portrayal["edgecolors"] = "yellow"
-            portrayal["linewidths"] = 3
-
-        return portrayal
 
     # Unknown agent type
     return {}

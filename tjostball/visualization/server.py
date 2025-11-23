@@ -38,7 +38,7 @@ def agent_portrayal(agent):
 # Model parameters that can be adjusted in the UI
 model_params = {
     "n_players_per_team": Slider(
-        "Players per team",
+        label="Players per team",
         value=7,
         min=3,
         max=11,
@@ -48,10 +48,12 @@ model_params = {
     "field_height": 70,
 }
 
+# Create an initial model instance
+model = TjostballModel()
 
 # Create the visualization page - this is the module-level variable that Solara looks for
 page = SolaraViz(
-    TjostballModel,
+    model,
     model_params=model_params,
     agent_portrayal=agent_portrayal,
     name="Tjostball Simulation",

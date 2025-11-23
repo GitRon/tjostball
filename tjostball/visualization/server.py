@@ -12,6 +12,7 @@ def agent_portrayal(agent):
     Returns a dictionary with agent visual properties for Altair rendering.
     """
     if not isinstance(agent, TjostballPlayer):
+        # Could be ball or other object - skip for now
         return {}
 
     # Color by team
@@ -25,6 +26,34 @@ def agent_portrayal(agent):
         "color": color,
         "size": size,
     }
+
+
+def draw_ball(model):
+    """
+    Custom drawing function to add the ball to the visualization.
+    Returns Altair chart layer for the ball.
+    """
+    import altair as alt
+    import pandas as pd
+
+    # Create a dataframe with the ball position
+    ball_df = pd.DataFrame([{
+        "x": model.ball_position[0],
+        "y": model.ball_position[1],
+    }])
+
+    # Create Altair chart for the ball
+    ball_chart = alt.Chart(ball_df).mark_circle(
+        size=200,
+        color="yellow",
+        stroke="orange",
+        strokeWidth=2
+    ).encode(
+        x=alt.X("x:Q", scale=alt.Scale(domain=[0, model.field_width])),
+        y=alt.Y("y:Q", scale=alt.Scale(domain=[0, model.field_height])),
+    )
+
+    return ball_chart
 
 
 # Model parameters that can be adjusted in the UI
@@ -44,7 +73,7 @@ model_params = {
 model = TjostballModel()
 
 # Create space visualization component with agent portrayal
-space_component = make_space_component(agent_portrayal)
+space_component = make_space_component(agent_portrayal, draw_ball)
 
 # Create the visualization page
 page = SolaraViz(

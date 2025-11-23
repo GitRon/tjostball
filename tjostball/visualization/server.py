@@ -36,49 +36,35 @@ def agent_portrayal(agent):
     }
 
 
-def create_server():
-    """
-    Create and configure the Mesa 3.x Solara visualization.
+# Model parameters that can be adjusted in the UI
+model_params = {
+    "n_players_per_team": Slider(
+        "Players per team",
+        value=7,
+        min=3,
+        max=11,
+        step=1,
+    ),
+    "field_width": 100,
+    "field_height": 70,
+}
 
-    Returns:
-        SolaraViz instance ready to run
-    """
-    # Model parameters that can be adjusted in the UI
-    model_params = {
-        "n_players_per_team": Slider(
-            "Players per team",
-            value=7,
-            min=3,
-            max=11,
-            step=1,
-        ),
-        "field_width": 100,
-        "field_height": 70,
-    }
 
-    # Create score plot
-    def make_score_plot(model):
-        return make_plot_component(
-            {
-                "Score Team 0": "blue",
-                "Score Team 1": "red",
-            }
-        )
-
-    # Create visualization
-    page = SolaraViz(
-        TjostballModel,
-        model_params,
-        measures=[make_score_plot],
-        name="Tjostball Simulation",
-        agent_portrayal=agent_portrayal,
+# Create score plot
+def make_score_plot(model):
+    return make_plot_component(
+        {
+            "Score Team 0": "blue",
+            "Score Team 1": "red",
+        }
     )
 
-    return page
 
-
-if __name__ == "__main__":
-    page = create_server()
-    # Note: In Mesa 3.x with Solara, the visualization runs automatically
-    # when this module is executed. No need to call .launch()
-    # The server will be available at http://localhost:8765
+# Create the visualization page - this is the module-level variable that Solara looks for
+page = SolaraViz(
+    TjostballModel,
+    model_params,
+    measures=[make_score_plot],
+    name="Tjostball Simulation",
+    agent_portrayal=agent_portrayal,
+)

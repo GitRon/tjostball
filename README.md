@@ -15,7 +15,12 @@ uv run python run_headless.py
 
 Run with web visualization:
 ```bash
+# Option 1: Using the run script
 uv run python run_simulation.py
+
+# Option 2: Using solara directly
+uv run solara run tjostball.visualization.server:page
+
 # Open browser to http://localhost:8765
 ```
 

@@ -17,8 +17,6 @@ def agent_portrayal(agent):
         return {
             "color": "yellow",
             "size": 200,
-            "marker": "o",
-            "zorder": 10,  # Draw ball on top
         }
 
     # Players

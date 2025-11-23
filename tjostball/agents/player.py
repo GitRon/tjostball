@@ -25,19 +25,18 @@ class TjostballPlayer(Agent):
         position: Current position on the field (handled by Mesa grid)
     """
 
-    def __init__(self, unique_id, model, team, speed=5.0, strength=5.0, stamina=100.0):
+    def __init__(self, model, team, speed=5.0, strength=5.0, stamina=100.0):
         """
         Initialize a Tjostball player agent.
 
         Args:
-            unique_id: Unique identifier for the agent
             model: The model instance the agent belongs to
             team: Team identifier (0 or 1)
             speed: Player speed (default 5.0)
             strength: Player strength (default 5.0)
             stamina: Current stamina level (default 100.0)
         """
-        super().__init__(unique_id, model)
+        super().__init__(model)
         self.team = team
         self.state = PlayerState.POSITIONING
         self.speed = speed
@@ -61,9 +60,8 @@ class TjostballPlayer(Agent):
         if self.pos:
             neighbors = self.model.grid.get_neighbors(
                 self.pos,
-                moore=True,
-                include_center=False,
-                radius=10
+                radius=10,
+                include_center=False
             )
 
             for agent in neighbors:

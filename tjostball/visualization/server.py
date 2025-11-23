@@ -72,12 +72,11 @@ model_params = {
 # Create an initial model instance
 model = TjostballModel()
 
-# Create space visualization component with agent portrayal using Altair backend
-# Altair works better with ContinuousSpace (matplotlib expects GridSpace with properties)
+# Create space visualization component with matplotlib backend
+# Configure to not draw property layers (which don't exist for ContinuousSpace)
 space_component = make_space_component(
     agent_portrayal,
-    draw_additional=draw_ball,
-    backend="altair"
+    propertylayer_portrayal=None,  # Disable property layers for ContinuousSpace
 )
 
 # Create the visualization page

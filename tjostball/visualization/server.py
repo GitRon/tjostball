@@ -1,7 +1,6 @@
 """Visualization server for Tjostball simulation using Mesa 3.x Solara interface."""
 
-from mesa.visualization import SolaraViz, Slider
-from mesa.visualization import make_plot_component
+from mesa.visualization import SolaraViz, Slider, make_plot_component
 from tjostball.models.game import TjostballModel
 from tjostball.agents.player import TjostballPlayer
 
@@ -50,21 +49,10 @@ model_params = {
 }
 
 
-# Create score plot
-def make_score_plot(model):
-    return make_plot_component(
-        {
-            "Score Team 0": "blue",
-            "Score Team 1": "red",
-        }
-    )
-
-
 # Create the visualization page - this is the module-level variable that Solara looks for
 page = SolaraViz(
     TjostballModel,
-    model_params,
-    measures=[make_score_plot],
-    name="Tjostball Simulation",
+    model_params=model_params,
     agent_portrayal=agent_portrayal,
+    name="Tjostball Simulation",
 )

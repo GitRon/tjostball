@@ -23,20 +23,19 @@ def agent_portrayal(agent):
 
     # Players
     if isinstance(agent, TjostballPlayer):
-        # Color by team
-        color = "tab:blue" if agent.team == 0 else "tab:red"
-
         # Size based on stamina (larger = more stamina)
         stamina_ratio = agent.stamina / agent.max_stamina
         size = 50 + (stamina_ratio * 100)  # Size between 50-150
 
         # Highlight player with ball possession
         if agent.model.ball_holder == agent:
-            # Yellow border for ball holder
+            # Ball holder: bright orange/yellow to stand out
+            color = "orange"
             edgecolor = "yellow"
             linewidth = 4
         else:
-            # Subtle border for other players
+            # Regular players: team color
+            color = "tab:blue" if agent.team == 0 else "tab:red"
             edgecolor = color
             linewidth = 1
 

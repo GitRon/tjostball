@@ -3,29 +3,40 @@
 from mesa.visualization import SolaraViz, Slider, make_space_component
 from tjostball.models.game import TjostballModel
 from tjostball.agents.player import TjostballPlayer
+from tjostball.agents.ball import Ball
 
 
 def agent_portrayal(agent):
     """
     Portrayal function for agents in the visualization.
 
-    Returns a dictionary with agent visual properties for Altair rendering.
+    Returns a dictionary with agent visual properties for rendering.
     """
-    if not isinstance(agent, TjostballPlayer):
-        # Could be ball or other object - skip for now
-        return {}
+    # Ball
+    if isinstance(agent, Ball):
+        return {
+            "color": "yellow",
+            "size": 200,
+            "marker": "o",
+            "zorder": 10,  # Draw ball on top
+        }
 
-    # Color by team
-    color = "tab:blue" if agent.team == 0 else "tab:red"
+    # Players
+    if isinstance(agent, TjostballPlayer):
+        # Color by team
+        color = "tab:blue" if agent.team == 0 else "tab:red"
 
-    # Size based on stamina (larger = more stamina)
-    stamina_ratio = agent.stamina / agent.max_stamina
-    size = 50 + (stamina_ratio * 100)  # Size between 50-150
+        # Size based on stamina (larger = more stamina)
+        stamina_ratio = agent.stamina / agent.max_stamina
+        size = 50 + (stamina_ratio * 100)  # Size between 50-150
 
-    return {
-        "color": color,
-        "size": size,
-    }
+        return {
+            "color": color,
+            "size": size,
+        }
+
+    # Unknown agent type
+    return {}
 
 
 def draw_ball(model):

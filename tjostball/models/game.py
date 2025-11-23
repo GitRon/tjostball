@@ -3,6 +3,7 @@
 from mesa import Model, DataCollector
 from mesa.space import ContinuousSpace
 from tjostball.agents.player import TjostballPlayer
+from tjostball.agents.ball import Ball
 
 
 class TjostballModel(Model):
@@ -50,6 +51,10 @@ class TjostballModel(Model):
         # Game state
         self.score = [0, 0]
         self.game_time = 0.0
+
+        # Create ball agent
+        self.ball = Ball(self)
+        self.grid.place_agent(self.ball, self.ball_position)
 
         # Create players for both teams
         self._create_teams()
@@ -121,6 +126,9 @@ class TjostballModel(Model):
         else:
             # Ball follows the holder
             self.ball_position = self.ball_holder.pos
+
+        # Update ball agent position
+        self.grid.move_agent(self.ball, self.ball_position)
 
     def check_ball_possession(self):
         """Check if any player is close enough to possess the ball."""

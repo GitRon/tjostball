@@ -1,5 +1,5 @@
 # Tjostball
-Agent-based game simulation using Mesa framework
+Agent-based game simulation using Mesa 3.x framework with Solara visualization
 
 ## Quick Start
 
@@ -16,7 +16,7 @@ uv run python run_headless.py
 Run with web visualization:
 ```bash
 uv run python run_simulation.py
-# Open browser to http://localhost:8521
+# Open browser to http://localhost:8765
 ```
 
 ## Project Structure
@@ -28,7 +28,7 @@ tjostball/
 ├── models/
 │   └── game.py            # TjostballModel simulation
 └── visualization/
-    └── server.py          # Mesa web visualization server
+    └── server.py          # Mesa 3.x Solara visualization
 ```
 
 ## Current Implementation

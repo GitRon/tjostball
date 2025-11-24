@@ -16,7 +16,7 @@ class TjostballModel(Model):
 
     def __init__(
         self,
-        n_players_per_team=7,
+        n_players_per_team=12,
         field_width=100,
         field_height=70,
         seed=None
@@ -25,7 +25,7 @@ class TjostballModel(Model):
         Initialize the Tjostball game model.
 
         Args:
-            n_players_per_team: Number of players per team (default 7)
+            n_players_per_team: Number of players per team (default 12)
             field_width: Width of the playing field (default 100)
             field_height: Height of the playing field (default 70)
             seed: Random seed for reproducibility
@@ -69,22 +69,38 @@ class TjostballModel(Model):
         )
 
     def _create_teams(self):
-        """Create player agents for both teams and position them on the field."""
+        """
+        Create player agents for both teams and position them on the field.
+
+        Team composition (12 players as per rules):
+        - 2 Front Fighters
+        - 3 Heavy Hitters
+        - 1 Runner
+        - 6 Supporters
+        """
+        # Define roles for 12-player teams (simplified from 27 in full rules)
+        roles = (
+            ["front_fighter"] * 2 +
+            ["heavy_hitter"] * 3 +
+            ["runner"] * 1 +
+            ["supporter"] * 6
+        )
+
         for team in [0, 1]:
             # Starting positions: team 0 on left, team 1 on right
             start_x = self.field_width * 0.25 if team == 0 else self.field_width * 0.75
 
-            for i in range(self.n_players_per_team):
+            for i in range(min(self.n_players_per_team, len(roles))):
                 # Spread players vertically
                 y_pos = (i + 1) * self.field_height / (self.n_players_per_team + 1)
 
-                # Create player with some variation in attributes
-                player = TjostballPlayer(
+                # Create player with role-based attributes
+                role = roles[i] if i < len(roles) else "supporter"
+                player = TjostballPlayer.create_with_role(
                     model=self,
                     team=team,
-                    speed=4.0 + self.random.random() * 2.0,  # Speed: 4-6
-                    strength=4.0 + self.random.random() * 2.0,  # Strength: 4-6
-                    stamina=90.0 + self.random.random() * 20.0  # Stamina: 90-110
+                    role=role,
+                    random_generator=self.random
                 )
 
                 self.grid.place_agent(player, (start_x, y_pos))

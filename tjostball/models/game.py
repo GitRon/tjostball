@@ -48,9 +48,36 @@ class TjostballModel(Model):
         self.ball_velocity = (0.0, 0.0)
         self.ball_holder = None
 
+        # Goal zones (positioned at each end of the field)
+        # Team 0 defends left goal (x=0), attacks right goal (x=field_width)
+        # Team 1 defends right goal (x=field_width), attacks left goal (x=0)
+        # Note: Positions must be in [0, width) with exclusive upper bound
+        self.goal_width = 20  # Goal width (centered vertically)
+        self.goal_depth = 5   # Goal depth (how far into the end zone)
+
+        # Left goal (Team 0 defends, Team 1 attacks)
+        self.left_goal = {
+            "x_min": 0,
+            "x_max": self.goal_depth,
+            "y_min": (field_height - self.goal_width) / 2,
+            "y_max": (field_height + self.goal_width) / 2,
+            "defending_team": 0
+        }
+
+        # Right goal (Team 1 defends, Team 0 attacks)
+        # Set x_max just below field_width to stay within valid bounds
+        self.right_goal = {
+            "x_min": field_width - self.goal_depth,
+            "x_max": field_width - 0.01,
+            "y_min": (field_height - self.goal_width) / 2,
+            "y_max": (field_height + self.goal_width) / 2,
+            "defending_team": 1
+        }
+
         # Game state
         self.score = [0, 0]
         self.game_time = 0.0
+        self.last_scorer = None
 
         # Create ball agent
         self.ball = Ball(self)
@@ -124,14 +151,14 @@ class TjostballModel(Model):
             new_x = bx + vx
             new_y = by + vy
 
-            # Bounce off boundaries
+            # Bounce off boundaries (positions must be strictly less than width/height)
             if new_x <= 0 or new_x >= self.field_width:
                 vx = -vx * 0.8  # Energy loss on bounce
-                new_x = max(0, min(self.field_width, new_x))
+                new_x = max(0.01, min(self.field_width - 0.01, new_x))
 
             if new_y <= 0 or new_y >= self.field_height:
                 vy = -vy * 0.8  # Energy loss on bounce
-                new_y = max(0, min(self.field_height, new_y))
+                new_y = max(0.01, min(self.field_height - 0.01, new_y))
 
             self.ball_position = (new_x, new_y)
             self.ball_velocity = (vx, vy)
@@ -143,8 +170,15 @@ class TjostballModel(Model):
             # Ball follows the holder
             self.ball_position = self.ball_holder.pos
 
-        # Update ball agent position
-        self.grid.move_agent(self.ball, self.ball_position)
+        # Clamp ball position to valid field boundaries before updating grid
+        # ContinuousSpace requires positions in [0, width) and [0, height) - exclusive upper bound
+        # This prevents errors when ball/player enters goal zones at field edges
+        bx, by = self.ball_position
+        clamped_x = max(0.0, min(self.field_width - 0.01, bx))
+        clamped_y = max(0.0, min(self.field_height - 0.01, by))
+
+        # Update ball agent position with clamped coordinates
+        self.grid.move_agent(self.ball, (clamped_x, clamped_y))
 
     def check_ball_possession(self):
         """Check if any player is close enough to possess the ball."""
@@ -166,6 +200,65 @@ class TjostballModel(Model):
             if closest_player and min_distance < 2.0:
                 self.ball_holder = closest_player
 
+    def check_goal_scored(self):
+        """
+        Check if a goal has been scored.
+        A goal is scored when a player carries the ball into the opponent's goal zone.
+        Returns True if a goal was scored, False otherwise.
+        """
+        if self.ball_holder is None:
+            return False
+
+        player = self.ball_holder
+        ball_x, ball_y = self.ball_position
+
+        # Check left goal (Team 1 scores here)
+        if (self.left_goal["x_min"] <= ball_x <= self.left_goal["x_max"] and
+            self.left_goal["y_min"] <= ball_y <= self.left_goal["y_max"]):
+            # Ball is in left goal zone
+            if player.team == 1:  # Team 1 is attacking this goal
+                self.score[1] += 1
+                self.last_scorer = player
+                print(f"GOAL! Team 1 scores! Player {player.unique_id} (role: {player.role})")
+                print(f"Score: Team 0: {self.score[0]}, Team 1: {self.score[1]}")
+                self.reset_after_goal()
+                return True
+
+        # Check right goal (Team 0 scores here)
+        if (self.right_goal["x_min"] <= ball_x <= self.right_goal["x_max"] and
+            self.right_goal["y_min"] <= ball_y <= self.right_goal["y_max"]):
+            # Ball is in right goal zone
+            if player.team == 0:  # Team 0 is attacking this goal
+                self.score[0] += 1
+                self.last_scorer = player
+                print(f"GOAL! Team 0 scores! Player {player.unique_id} (role: {player.role})")
+                print(f"Score: Team 0: {self.score[0]}, Team 1: {self.score[1]}")
+                self.reset_after_goal()
+                return True
+
+        return False
+
+    def reset_after_goal(self):
+        """Reset ball and players to starting positions after a goal."""
+        # Reset ball to center
+        self.ball_position = (self.field_width / 2, self.field_height / 2)
+        self.ball_velocity = (0.0, 0.0)
+        self.ball_holder = None
+
+        # Reset players to starting positions
+        team_0_players = [a for a in self.agents if isinstance(a, TjostballPlayer) and a.team == 0]
+        team_1_players = [a for a in self.agents if isinstance(a, TjostballPlayer) and a.team == 1]
+
+        # Team 0 starts on left
+        for i, player in enumerate(team_0_players):
+            y_pos = (i + 1) * self.field_height / (len(team_0_players) + 1)
+            self.grid.move_agent(player, (self.field_width * 0.25, y_pos))
+
+        # Team 1 starts on right
+        for i, player in enumerate(team_1_players):
+            y_pos = (i + 1) * self.field_height / (len(team_1_players) + 1)
+            self.grid.move_agent(player, (self.field_width * 0.75, y_pos))
+
     def step(self):
         """
         Advance the model by one step (0.1 seconds of game time).
@@ -178,6 +271,9 @@ class TjostballModel(Model):
 
         # Check for ball possession
         self.check_ball_possession()
+
+        # Check if a goal was scored
+        self.check_goal_scored()
 
         # Advance all agents (Mesa 3.x uses built-in agent management)
         for agent in self.agents:

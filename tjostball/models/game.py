@@ -51,6 +51,7 @@ class TjostballModel(Model):
         # Goal zones (positioned at each end of the field)
         # Team 0 defends left goal (x=0), attacks right goal (x=field_width)
         # Team 1 defends right goal (x=field_width), attacks left goal (x=0)
+        # Note: Positions must be in [0, width) with exclusive upper bound
         self.goal_width = 20  # Goal width (centered vertically)
         self.goal_depth = 5   # Goal depth (how far into the end zone)
 
@@ -64,9 +65,10 @@ class TjostballModel(Model):
         }
 
         # Right goal (Team 1 defends, Team 0 attacks)
+        # Set x_max just below field_width to stay within valid bounds
         self.right_goal = {
             "x_min": field_width - self.goal_depth,
-            "x_max": field_width,
+            "x_max": field_width - 0.01,
             "y_min": (field_height - self.goal_width) / 2,
             "y_max": (field_height + self.goal_width) / 2,
             "defending_team": 1
@@ -149,14 +151,14 @@ class TjostballModel(Model):
             new_x = bx + vx
             new_y = by + vy
 
-            # Bounce off boundaries
+            # Bounce off boundaries (positions must be strictly less than width/height)
             if new_x <= 0 or new_x >= self.field_width:
                 vx = -vx * 0.8  # Energy loss on bounce
-                new_x = max(0, min(self.field_width, new_x))
+                new_x = max(0.01, min(self.field_width - 0.01, new_x))
 
             if new_y <= 0 or new_y >= self.field_height:
                 vy = -vy * 0.8  # Energy loss on bounce
-                new_y = max(0, min(self.field_height, new_y))
+                new_y = max(0.01, min(self.field_height - 0.01, new_y))
 
             self.ball_position = (new_x, new_y)
             self.ball_velocity = (vx, vy)
@@ -168,8 +170,15 @@ class TjostballModel(Model):
             # Ball follows the holder
             self.ball_position = self.ball_holder.pos
 
-        # Update ball agent position
-        self.grid.move_agent(self.ball, self.ball_position)
+        # Clamp ball position to valid field boundaries before updating grid
+        # ContinuousSpace requires positions in [0, width) and [0, height) - exclusive upper bound
+        # This prevents errors when ball/player enters goal zones at field edges
+        bx, by = self.ball_position
+        clamped_x = max(0.0, min(self.field_width - 0.01, bx))
+        clamped_y = max(0.0, min(self.field_height - 0.01, by))
+
+        # Update ball agent position with clamped coordinates
+        self.grid.move_agent(self.ball, (clamped_x, clamped_y))
 
     def check_ball_possession(self):
         """Check if any player is close enough to possess the ball."""

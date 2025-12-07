@@ -524,9 +524,9 @@ class TjostballPlayer(Agent):
             new_x = self.pos[0] + move_x
             new_y = self.pos[1] + move_y
 
-            # Clamp to field boundaries
-            new_x = max(0, min(self.model.field_width, new_x))
-            new_y = max(0, min(self.model.field_height, new_y))
+            # Clamp to field boundaries (positions must be strictly less than width/height)
+            new_x = max(0.01, min(self.model.field_width - 0.01, new_x))
+            new_y = max(0.01, min(self.model.field_height - 0.01, new_y))
 
             # Only move if it won't cause a collision
             if not self.would_collide((new_x, new_y)):

@@ -53,6 +53,52 @@ def agent_portrayal(agent):
     return {}
 
 
+def draw_goals(model):
+    """
+    Custom drawing function to draw goal zones on the field.
+    Returns Altair chart layer for the goals.
+    """
+    import altair as alt
+    import pandas as pd
+
+    # Create rectangles for the two goals
+    goals_df = pd.DataFrame([
+        {
+            "x": model.left_goal["x_min"],
+            "y": model.left_goal["y_min"],
+            "x2": model.left_goal["x_max"],
+            "y2": model.left_goal["y_max"],
+            "goal": "Team 0 Goal (defended)"
+        },
+        {
+            "x": model.right_goal["x_min"],
+            "y": model.right_goal["y_min"],
+            "x2": model.right_goal["x_max"],
+            "y2": model.right_goal["y_max"],
+            "goal": "Team 1 Goal (defended)"
+        }
+    ])
+
+    # Draw goal zones as rectangles
+    goals_chart = alt.Chart(goals_df).mark_rect(
+        opacity=0.3,
+        stroke="black",
+        strokeWidth=2
+    ).encode(
+        x=alt.X("x:Q", scale=alt.Scale(domain=[0, model.field_width])),
+        y=alt.Y("y:Q", scale=alt.Scale(domain=[0, model.field_height])),
+        x2="x2:Q",
+        y2="y2:Q",
+        color=alt.Color("goal:N", scale=alt.Scale(
+            domain=["Team 0 Goal (defended)", "Team 1 Goal (defended)"],
+            range=["blue", "red"]
+        )),
+        tooltip=["goal:N"]
+    )
+
+    return goals_chart
+
+
 def draw_ball(model):
     """
     Custom drawing function to add the ball to the visualization.
@@ -94,15 +140,66 @@ model_params = {
     "field_height": 70,
 }
 
+def space_drawer(model):
+    """
+    Custom space drawing function that combines goals, agents, and ball.
+    """
+    import altair as alt
+    import pandas as pd
+    from tjostball.agents.player import TjostballPlayer
+    from tjostball.agents.ball import Ball
+
+    # Draw goals first (background layer)
+    goals_layer = draw_goals(model)
+
+    # Draw agents (players)
+    agent_records = []
+    for agent in model.agents:
+        if isinstance(agent, TjostballPlayer) and agent.pos:
+            portrayal = agent_portrayal(agent)
+            agent_records.append({
+                "x": agent.pos[0],
+                "y": agent.pos[1],
+                "size": portrayal.get("size", 50),
+                "color": portrayal.get("color", "gray"),
+                "edge_color": portrayal.get("edgecolors", "black"),
+                "edge_width": portrayal.get("linewidths", 1),
+                "team": f"Team {agent.team}",
+                "role": agent.role or "unknown"
+            })
+
+    if agent_records:
+        agents_df = pd.DataFrame(agent_records)
+        agents_layer = alt.Chart(agents_df).mark_circle().encode(
+            x=alt.X("x:Q", scale=alt.Scale(domain=[0, model.field_width])),
+            y=alt.Y("y:Q", scale=alt.Scale(domain=[0, model.field_height])),
+            size=alt.Size("size:Q", legend=None),
+            color=alt.Color("color:N", scale=None, legend=alt.Legend(title="Team")),
+            stroke=alt.Stroke("edge_color:N", scale=None, legend=None),
+            strokeWidth=alt.StrokeWidth("edge_width:Q", legend=None),
+            tooltip=["team:N", "role:N"]
+        )
+    else:
+        agents_layer = alt.Chart(pd.DataFrame()).mark_circle()
+
+    # Draw ball on top
+    ball_layer = draw_ball(model)
+
+    # Combine all layers
+    combined = alt.layer(goals_layer, agents_layer, ball_layer).properties(
+        width=600,
+        height=420,
+        title=f"Tjostball Game - Score: Team 0: {model.score[0]} | Team 1: {model.score[1]}"
+    )
+
+    return combined
+
+
 # Create an initial model instance
 model = TjostballModel()
 
-# Create space visualization component with matplotlib backend
-# Configure to not draw property layers (which don't exist for ContinuousSpace)
-space_component = make_space_component(
-    agent_portrayal,
-    propertylayer_portrayal=None,  # Disable property layers for ContinuousSpace
-)
+# Use custom space drawer instead of default
+space_component = space_drawer
 
 # Create the visualization page
 page = SolaraViz(

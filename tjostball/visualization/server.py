@@ -1,5 +1,6 @@
 """Visualization server for Tjostball simulation using Mesa 3.x Solara interface."""
 
+import solara
 from mesa.visualization import SolaraViz, Slider, make_space_component
 from tjostball.models.game import TjostballModel
 from tjostball.agents.player import TjostballPlayer
@@ -198,13 +199,17 @@ def space_drawer(model):
 # Create an initial model instance
 model = TjostballModel()
 
-# Use custom space drawer instead of default
-space_component = space_drawer
+# Create a proper Solara component for the space visualization
+@solara.component
+def make_space_viz(model):
+    """Create the space visualization component."""
+    chart = space_drawer(model)
+    solara.FigureAltair(chart)
 
 # Create the visualization page
 page = SolaraViz(
     model,
-    components=[space_component],
+    components=[make_space_viz],
     model_params=model_params,
     name="Tjostball Simulation",
 )

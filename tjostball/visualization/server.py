@@ -201,15 +201,20 @@ model = TjostballModel()
 
 # Create a proper Solara component for the space visualization
 @solara.component
-def make_space_viz(model):
-    """Create the space visualization component."""
+def SpaceViz(model):
+    """Create the space visualization component with goals."""
+    # Get the chart
     chart = space_drawer(model)
-    solara.FigureAltair(chart)
+
+    # Convert Altair chart to HTML for display
+    # This avoids version compatibility issues with FigureAltair
+    html = chart.to_html()
+    solara.HTML(unsafe_innerHTML=html)
 
 # Create the visualization page
 page = SolaraViz(
     model,
-    components=[make_space_viz],
+    components=[SpaceViz],
     model_params=model_params,
     name="Tjostball Simulation",
 )
